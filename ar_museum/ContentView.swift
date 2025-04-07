@@ -8,31 +8,57 @@
 import SwiftUI
 import RealityKit
 
-struct ContentView : View {
-
+struct ContentView: View {
     var body: some View {
-        RealityView { content in
-
-            // Create a cube model
-            let model = Entity()
-            let mesh = MeshResource.generateBox(size: 0.1, cornerRadius: 0.005)
-            let material = SimpleMaterial(color: .gray, roughness: 0.15, isMetallic: true)
-            model.components.set(ModelComponent(mesh: mesh, materials: [material]))
-            model.position = [0, 0.05, 0]
-
-            // Create horizontal plane anchor for the content
-            let anchor = AnchorEntity(.plane(.horizontal, classification: .any, minimumBounds: SIMD2<Float>(0.2, 0.2)))
-            anchor.addChild(model)
-
-            // Add the horizontal plane anchor to the scene
-            content.add(anchor)
-
-            content.camera = .spatialTracking
-
+        NavigationView {
+            List {
+                NavigationLink(destination: ExhibitListView()) {
+                    HStack {
+                        Image(systemName: "list.bullet")
+                            .font(.title)
+                            .foregroundColor(.blue)
+                        Text("展品列表")
+                            .font(.headline)
+                    }
+                    .padding(.vertical, 8)
+                }
+                
+                NavigationLink(destination: ARExhibitionView()) {
+                    HStack {
+                        Image(systemName: "arkit")
+                            .font(.title)
+                            .foregroundColor(.green)
+                        Text("AR展览")
+                            .font(.headline)
+                    }
+                    .padding(.vertical, 8)
+                }
+                
+                NavigationLink(destination: VirtualMuseumView()) {
+                    HStack {
+                        Image(systemName: "building.columns")
+                            .font(.title)
+                            .foregroundColor(.purple)
+                        Text("虚拟博物馆")
+                            .font(.headline)
+                    }
+                    .padding(.vertical, 8)
+                }
+                
+                NavigationLink(destination: SettingsView()) {
+                    HStack {
+                        Image(systemName: "gear")
+                            .font(.title)
+                            .foregroundColor(.gray)
+                        Text("设置")
+                            .font(.headline)
+                    }
+                    .padding(.vertical, 8)
+                }
+            }
+            .navigationTitle("AR博物馆")
         }
-        .edgesIgnoringSafeArea(.all)
     }
-
 }
 
 #Preview {

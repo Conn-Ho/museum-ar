@@ -532,7 +532,7 @@
 				04857BF52D8EC6C200195DB6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		04857BF62D8EC6C200195DB6 /* Build configuration list for PBXNativeTarget "ar_museum" */ = {
 			isa = XCConfigurationList;
@@ -541,7 +541,7 @@
 				04857BF82D8EC6C200195DB6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		04857BF92D8EC6C200195DB6 /* Build configuration list for PBXNativeTarget "ar_museumTests" */ = {
 			isa = XCConfigurationList;
@@ -550,7 +550,7 @@
 				04857BFB2D8EC6C200195DB6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		04857BFC2D8EC6C200195DB6 /* Build configuration list for PBXNativeTarget "ar_museumUITests" */ = {
 			isa = XCConfigurationList;
@@ -559,7 +559,7 @@
 				04857BFE2D8EC6C200195DB6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};
