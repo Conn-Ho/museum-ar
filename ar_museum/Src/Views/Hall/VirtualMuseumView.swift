@@ -10,28 +10,23 @@ struct VirtualMuseumView: View {
             SceneView(
                 scene: viewModel.scene,
                 pointOfView: viewModel.cameraNode,
-                options: [.allowsCameraControl]
+                options: [.allowsCameraControl, .autoenablesDefaultLighting]
             )
-            .gesture(
-                DragGesture()
-                    .onChanged(viewModel.handlePan)
-                    .onEnded(viewModel.handlePanEnd)
-            )
-            .gesture(
-                MagnificationGesture()
-                    .onChanged(viewModel.handlePinch)
-            )
-            .gesture(
-                RotationGesture()
-                    .onChanged(viewModel.handleRotation)
-            )
-            
+            .background(Color.black)
+            .edgesIgnoringSafeArea(.all)
+            .onAppear {
+                print("VirtualMuseumView appeared")
+            }
+
             // 虚拟摇杆控制
             VirtualJoystickView(
                 onDirectionChanged: viewModel.handleJoystickMovement
             )
             .frame(width: 120, height: 120)
-            .position(x: 80, y: UIScreen.main.bounds.height - 100)
+            .position(
+                x: UIScreen.main.bounds.width - 80,
+                y: UIScreen.main.bounds.height - 200
+            )
             
             // 展厅切换按钮
             Button(action: { viewModel.showGalleryList.toggle() }) {

@@ -8,28 +8,7 @@ struct ContentView: View {
         TabView(selection: $selectedTab) {
             // 首页/探索
             NavigationView {
-                VStack {
-                    Text("探索博物馆")
-                        .font(.largeTitle)
-                        .bold()
-                    
-                    ScrollView {
-                        LazyVGrid(columns: [
-                            GridItem(.flexible()),
-                            GridItem(.flexible())
-                        ], spacing: 20) {
-                            // 展览预览卡片
-                            ForEach(0..<4) { index in
-                                ExhibitionCard(
-                                    title: "展览 \(index + 1)",
-                                    imageSystemName: "photo",
-                                    description: "这是一个精彩的展览介绍"
-                                )
-                            }
-                        }
-                        .padding()
-                    }
-                }
+                VirtualMuseumView()
             }
             .tabItem {
                 Label("探索", systemImage: "building.columns")
@@ -54,49 +33,16 @@ struct ContentView: View {
             .tabItem {
                 Label("留言墙", systemImage: "bubble.left")
             }
-            .tag(3)
+            .tag(2)
             
             // 我的
             NavigationView {
-                List {
-                    Section(header: Text("个人信息")) {
-                        HStack {
-                            Image(systemName: "person.circle.fill")
-                                .resizable()
-                                .frame(width: 50, height: 50)
-                                .foregroundColor(.blue)
-                            
-                            VStack(alignment: .leading) {
-                                Text("游客")
-                                    .font(.headline)
-                                Text("点击登录")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                            }
-                        }
-                        .padding(.vertical, 8)
-                    }
-                    
-                    Section(header: Text("功能")) {
-                        NavigationLink(destination: Text("收藏展品")) {
-                            Label("收藏展品", systemImage: "star")
-                        }
-                        
-                        NavigationLink(destination: Text("浏览历史")) {
-                            Label("浏览历史", systemImage: "clock")
-                        }
-                        
-                        NavigationLink(destination: Text("设置")) {
-                            Label("设置", systemImage: "gear")
-                        }
-                    }
-                }
-                .navigationTitle("我的")
+               ProfileView()
             }
             .tabItem {
                 Label("我的", systemImage: "person")
             }
-            .tag(2)
+            .tag(3)
         }
     }
 }

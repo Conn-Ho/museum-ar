@@ -27,43 +27,106 @@ class VirtualMuseumViewModel: ObservableObject {
     }
     
     private func setupScene() {
-        // 加载博物馆 USDZ 模型
-        if let museumURL = Bundle.main.url(forResource: "museum", withExtension: "usdz") {
-            do {
-                let museumScene = try SCNScene(url: museumURL, options: [
-                    .checkConsistency: true,
-                    .convertToYUp: true
-                ])
-                scene.rootNode.addChildNode(museumScene.rootNode)
-            } catch {
-                print("Error loading museum model: \(error)")
+        // 添加调试用的参考物体，帮助确认场景是否正确加载
+        let debugBox = SCNBox(width: 1, height: 1, length: 1, chamferRadius: 0)
+        let debugNode = SCNNode(geometry: debugBox)
+        debugNode.position = SCNVector3(0, 0, 0)
+        let material = SCNMaterial()
+        material.diffuse.contents = UIColor.red
+        debugBox.materials = [material]
+        scene.rootNode.addChildNode(debugNode)
+        
+        // 修改模型加载逻辑
+        let modelFiles = [
+            "Floor": (position: SCNVector3(0, -1, 0), scale: 1.0),
+            "museum1": (position: SCNVector3(0, 0, 0), scale: 0.1),  // 尝试缩小模型
+            "terracotta": (position: SCNVector3(2, 0, -2), scale: 0.05)  // 尝试缩小模型
+        ]
+        
+        // 打印Bundle信息以便调试
+        print("Bundle path: \(Bundle.main.bundlePath)")
+        
+        for (modelName, config) in modelFiles {
+            // 尝试多个可能的路径
+            let possiblePaths = [
+                "Resources/Models",
+                "Models",
+                "",
+                "assets"
+            ]
+            
+            var loadedModel = false
+            
+            for path in possiblePaths {
+                if let modelURL = Bundle.main.url(forResource: modelName, withExtension: "usdz", subdirectory: path) {
+                    do {
+                        print("Attempting to load model from: \(modelURL.path)")
+                        let modelScene = try SCNScene(url: modelURL, options: [
+                            .checkConsistency: true,
+                            .convertToYUp: true
+                        ])
+                        
+                        if let modelNode = modelScene.rootNode.childNodes.first {
+                            modelNode.name = modelName
+                            modelNode.position = config.position
+                            modelNode.scale = SCNVector3(config.scale, config.scale, config.scale)
+                            
+                            // 打印模型信息
+                            print("Model loaded: \(modelName)")
+                            print("Model bounds: \(modelNode.boundingBox)")
+                            print("Model position: \(modelNode.position)")
+                            
+                            scene.rootNode.addChildNode(modelNode)
+                            loadedModel = true
+                            break
+                        }
+                    } catch {
+                        print("Error loading model \(modelName) from \(path): \(error)")
+                    }
+                }
+            }
+            
+            if !loadedModel {
+                print("Failed to load model: \(modelName)")
             }
         }
     }
     
     private func setupCamera() {
         cameraNode.camera = SCNCamera()
-        cameraNode.position = SCNVector3(0, 1.7, 5) // 人眼高度
+        // 调整相机初始位置，拉远一些以便看到整个场景
+        cameraNode.position = SCNVector3(0, 2, 10)  // 更改位置
         cameraNode.camera?.zNear = 0.1
-        cameraNode.camera?.zFar = 100
+        cameraNode.camera?.zFar = 1000  // 增加远平面距离
+        cameraNode.camera?.fieldOfView = 60  // 设置视场角
         scene.rootNode.addChildNode(cameraNode)
     }
     
     private func setupLighting() {
-        // 环境光
+        // 增强环境光照
         let ambientLight = SCNNode()
         ambientLight.light = SCNLight()
         ambientLight.light?.type = .ambient
-        ambientLight.light?.intensity = 100
+        ambientLight.light?.intensity = 1000  // 增加光照强度
+        ambientLight.light?.temperature = 6500  // 添加色温
         scene.rootNode.addChildNode(ambientLight)
         
-        // 定向光
+        // 添加多个方向光源
         let directionalLight = SCNNode()
         directionalLight.light = SCNLight()
         directionalLight.light?.type = .directional
-        directionalLight.position = SCNVector3(0, 10, 0)
+        directionalLight.light?.intensity = 1000
+        directionalLight.position = SCNVector3(0, 10, 10)
         directionalLight.eulerAngles = SCNVector3(-Float.pi/4, 0, 0)
         scene.rootNode.addChildNode(directionalLight)
+        
+        // 添加额外的补光
+        let fillLight = SCNNode()
+        fillLight.light = SCNLight()
+        fillLight.light?.type = .directional
+        fillLight.light?.intensity = 500
+        fillLight.position = SCNVector3(-5, 5, 5)
+        scene.rootNode.addChildNode(fillLight)
     }
     
     private func loadMuseumModel() {
@@ -163,28 +226,18 @@ class VirtualMuseumViewModel: ObservableObject {
             cameraNode.position.z + dz
         )
         
-        // Create a ray node for collision testing
-        let rayNode = SCNNode()
-        let rayGeometry = SCNCylinder(radius: 0.1, height: 0.5)
-        rayNode.geometry = rayGeometry
-        rayNode.position = cameraNode.position
+        // 进行射线检测，确保不会穿墙
+        let from = cameraNode.position
+        let to = newPosition
         
-        // Add physics body to ray node
-        rayNode.physicsBody = SCNPhysicsBody(type: .dynamic, shape: SCNPhysicsShape(geometry: rayGeometry))
-        rayNode.physicsBody?.isAffectedByGravity = false
-        rayNode.physicsBody?.categoryBitMask = 2  // Different from camera's category
+        // Use physics world for ray testing
+        let results = scene.physicsWorld.rayTestWithSegment(
+            from: from,
+            to: to,
+            options: [SCNPhysicsWorld.TestOption.searchMode: SCNPhysicsWorld.TestSearchMode.closest]
+        )
         
-        // Add ray to scene temporarily
-        scene.rootNode.addChildNode(rayNode)
-        
-        // Test for contact
-        let contacts = scene.physicsWorld.contactTest(with: rayNode.physicsBody!)
-        
-        // Remove ray node after testing
-        rayNode.removeFromParentNode()
-        
-        // If no collisions detected, allow movement
-        if contacts.isEmpty {
+        if results.isEmpty {
             cameraNode.position = newPosition
         }
     }
@@ -213,16 +266,24 @@ class VirtualMuseumViewModel: ObservableObject {
         guard let sceneView = sceneView else { return }
         
         let hitResults = sceneView.hitTest(point, options: [:])
-
+        
         if let result = hitResults.first {
-            if let exhibitNode = result.node.parent, exhibitNode.name == "terracotta" {
-                selectedExhibit = Exhibit(
-                    node: exhibitNode,
-                    detailScene: createDetailScene(for: exhibitNode),
-                    description: "兵马俑，又称秦始皇兵马俑，是世界第八大奇迹...",
-                    audioURL: Bundle.main.url(forResource: "terracotta_audio", withExtension: "mp3")
-                )
-                showExhibitDetail = true
+            let node = result.node
+            
+            // 向上遍历节点层级来查找父节点
+            var currentNode: SCNNode? = node
+            while let parent = currentNode {
+                if parent.name == "terracotta" {
+                    selectedExhibit = Exhibit(
+                        node: parent,
+                        detailScene: createDetailScene(for: parent),
+                        description: "兵马俑，又称秦始皇兵马俑，是世界第八大奇迹...",
+                        audioURL: Bundle.main.url(forResource: "terracotta_audio", withExtension: "mp3")
+                    )
+                    showExhibitDetail = true
+                    break
+                }
+                currentNode = parent.parent
             }
         }
     }
@@ -250,5 +311,16 @@ class VirtualMuseumViewModel: ObservableObject {
         detailScene.rootNode.addChildNode(directionalLight)
         
         return detailScene
+    }
+    
+    // 添加辅助方法来创建物理边界（防止穿墙）
+    private func addPhysicsBodies() {
+        // 为博物馆墙壁添加物理边界
+        if let museumNode = scene.rootNode.childNode(withName: "museum1", recursively: true) {
+            let physicsShape = SCNPhysicsShape(node: museumNode, options: [
+                SCNPhysicsShape.Option.type: SCNPhysicsShape.ShapeType.concavePolyhedron
+            ])
+            museumNode.physicsBody = SCNPhysicsBody(type: .static, shape: physicsShape)
+        }
     }
 } 
