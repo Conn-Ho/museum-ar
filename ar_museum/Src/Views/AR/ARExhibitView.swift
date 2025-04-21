@@ -4,6 +4,8 @@ import RealityKit
 
 struct ARExhibitView: View {
     @StateObject private var viewModel = ARExhibitViewModel()
+    @State private var showExhibitPicker = false
+    @State private var selectedExhibit: ARExhibit? = ARExhibit.samples.first
     
     var body: some View {
         ZStack {
@@ -11,27 +13,26 @@ struct ARExhibitView: View {
             ARViewContainer(viewModel: viewModel)
                 .edgesIgnoringSafeArea(.all)
             
-            // 提示信息
+            // 顶部工具栏
             VStack {
-                if viewModel.isLoading {
-                    Text("正在加载兵马俑模型...")
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.black.opacity(0.5))
-                        .cornerRadius(10)
-                } else {
-                    Text("点击平面放置兵马俑")
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.black.opacity(0.5))
-                        .cornerRadius(10)
-                        .padding(.top)
-                }
-                
-                Spacer()
-                
-                // 底部工具栏
                 HStack {
+                    // 展品选择按钮
+                    Button(action: {
+                        showExhibitPicker = true
+                    }) {
+                        HStack {
+                            Image(systemName: "cube.box")
+                            Text(selectedExhibit?.name ?? "选择展品")
+                        }
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.black.opacity(0.5))
+                        .cornerRadius(10)
+                    }
+                    
+                    Spacer()
+                    
+                    // 重置按钮
                     Button(action: {
                         viewModel.resetScene()
                     }) {
@@ -42,10 +43,24 @@ struct ARExhibitView: View {
                             .background(Color.black.opacity(0.5))
                             .clipShape(Circle())
                     }
-                    .padding()
-                    
-                    Spacer()
                 }
+                .padding()
+                
+                if viewModel.isLoading {
+                    Text("正在加载模型...")
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.black.opacity(0.5))
+                        .cornerRadius(10)
+                } else {
+                    Text("点击平面放置展品")
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.black.opacity(0.5))
+                        .cornerRadius(10)
+                }
+                
+                Spacer()
             }
             
             // 错误提示
@@ -55,6 +70,57 @@ struct ARExhibitView: View {
                     .padding()
                     .background(Color.red.opacity(0.8))
                     .cornerRadius(10)
+            }
+        }
+        .sheet(isPresented: $showExhibitPicker) {
+            ExhibitPickerView(selectedExhibit: $selectedExhibit)
+        }
+        .onChange(of: selectedExhibit) { newExhibit in
+            if let exhibit = newExhibit {
+                viewModel.loadModel(exhibit: exhibit)
+            }
+        }
+    }
+}
+
+// 展品选择器视图
+struct ExhibitPickerView: View {
+    @Environment(\.dismiss) var dismiss
+    @Binding var selectedExhibit: ARExhibit?
+    
+    var body: some View {
+        NavigationView {
+            List(ARExhibit.samples) { exhibit in
+                Button(action: {
+                    selectedExhibit = exhibit
+                    dismiss()
+                }) {
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text(exhibit.name)
+                                .font(.headline)
+                            Text(exhibit.description)
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        }
+                        
+                        Spacer()
+                        
+                        if selectedExhibit?.id == exhibit.id {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("选择展品")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("完成") {
+                        dismiss()
+                    }
+                }
             }
         }
     }

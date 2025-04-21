@@ -4,44 +4,37 @@ import Combine
 
 class ARExhibitViewModel: NSObject, ObservableObject {
     weak var arView: ARView?
-    private var cancellables = Set<AnyCancellable>()
-    private var terracottaEntity: Entity?
+    private var currentEntity: Entity?
     
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    override init() {
-        super.init()
-        loadTerracottaModel()
-    }
-    
-    private func loadTerracottaModel() {
+    func loadModel(exhibit: ARExhibit) {
         isLoading = true
         
-        if let modelURL = Bundle.main.url(forResource: "terracotta", 
+        if let modelURL = Bundle.main.url(forResource: exhibit.modelName, 
                                         withExtension: "usdz") {
             do {
                 let loadedEntity = try Entity.load(contentsOf: modelURL)
-                // 将缩放比例改得更小
-                loadedEntity.scale = [0.001, 0.001, 0.001]  // 从 0.05 改为 0.001
-                self.terracottaEntity = loadedEntity
+                loadedEntity.scale = [exhibit.scale, exhibit.scale, exhibit.scale]
+                self.currentEntity = loadedEntity
                 isLoading = false
-                print("兵马俑模型加载成功")
+                print("\(exhibit.name) 模型加载成功")
             } catch {
-                print("加载兵马俑模型失败: \(error)")
+                print("加载模型失败: \(error)")
                 errorMessage = "加载模型失败: \(error.localizedDescription)"
                 isLoading = false
             }
         } else {
-            print("无法找到兵马俑模型文件")
-            errorMessage = "无法找到兵马俑模型文件"
+            print("无法找到模型文件: \(exhibit.modelName)")
+            errorMessage = "无法找到模型文件"
             isLoading = false
         }
     }
     
     func handleTap(at point: CGPoint) {
         guard let arView = arView,
-              let terracottaEntity = self.terracottaEntity else { return }
+              let entity = self.currentEntity else { return }
         
         let results = arView.raycast(from: point, allowing: .estimatedPlane, alignment: .horizontal)
         
@@ -50,19 +43,14 @@ class ARExhibitViewModel: NSObject, ObservableObject {
             let position = simd_make_float3(transform.columns.3)
             
             let anchorEntity = AnchorEntity(world: position)
-            let modelClone = terracottaEntity.clone(recursive: true)
+            let modelClone = entity.clone(recursive: true)
             
-            // 调整模型的位置，稍微抬高一点，避免陷入平面
-            modelClone.position.y += 0.01  // 向上抬高1厘米
-            
-            // 调整模型朝向
+            modelClone.position.y += 0.01
             modelClone.orientation = simd_quatf(angle: .pi, axis: [0, 1, 0])
             
             anchorEntity.addChild(modelClone)
             resetScene()
             arView.scene.addAnchor(anchorEntity)
-            
-            print("兵马俑已放置在位置: \(position)")
         }
     }
     

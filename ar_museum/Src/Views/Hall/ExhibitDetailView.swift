@@ -63,7 +63,7 @@ struct ExhibitDetailView: View {
                     VStack {
                         Image(systemName: "speaker.wave.2.fill")
                             .font(.title2)
-                        Text("语音讲解")
+                        Text("讲解")
                             .font(.caption)
                     }
                 }
