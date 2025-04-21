@@ -17,8 +17,18 @@ struct ContentView: View {
             
             // AR体验
             NavigationView {
-                Text("AR体验")
-                    .navigationTitle("AR")
+                ARExhibitView()
+                    .navigationBarTitleDisplayMode(.inline)
+                    .navigationTitle("AR体验")
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button(action: {
+                                // 可以添加帮助说明或其他功能按钮
+                            }) {
+                                Image(systemName: "questionmark.circle")
+                            }
+                        }
+                    }
             }
             .tabItem {
                 Label("AR", systemImage: "camera.viewfinder")
