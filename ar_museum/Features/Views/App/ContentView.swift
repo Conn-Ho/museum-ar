@@ -25,15 +25,15 @@ struct ContentView: View {
             }
             .tag(1)
 
-            // AR留言墙
-            NavigationView {
-                Text("AR留言墙")
-                    .navigationTitle("AR")
-            }
-            .tabItem {
-                Label("留言墙", systemImage: "bubble.left")
-            }
-            .tag(2)
+            // // AR留言墙
+            // NavigationView {
+            //     Text("AR留言墙")
+            //         .navigationTitle("AR")
+            // }
+            // .tabItem {
+            //     Label("留言墙", systemImage: "bubble.left")
+            // }
+            // .tag(2)
             
             // 我的
             NavigationView {
@@ -42,7 +42,7 @@ struct ContentView: View {
             .tabItem {
                 Label("我的", systemImage: "person")
             }
-            .tag(3)
+            .tag(2)
         }
     }
 }

@@ -6,25 +6,25 @@ struct VirtualJoystickView: View {
     
     var body: some View {
         ZStack {
-            // 底座 - 增加可见性
+            // 底座 - 增加大小
             Circle()
                 .fill(Color.gray.opacity(0.3))
-                .frame(width: 120, height: 120)
+                .frame(width: 180, height: 180)  // 增加底座大小
             
-            // 摇杆 - 增加可见性
+            // 摇杆 - 增加大小
             Circle()
                 .fill(Color.white.opacity(0.8))
-                .frame(width: 50, height: 50)
+                .frame(width: 80, height: 80)    // 增加摇杆大小
                 .offset(x: stickPosition.x, y: stickPosition.y)
                 .gesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { value in
-                            let radius: CGFloat = 35
+                            let radius: CGFloat = 50  // 增加移动范围
                             
                             // 计算相对于中心的位置
                             var position = CGPoint(
-                                x: value.location.x - 60, // 相对于中心的x坐标
-                                y: value.location.y - 60  // 相对于中心的y坐标
+                                x: value.location.x - 90, // 相对于中心的x坐标
+                                y: value.location.y - 90  // 相对于中心的y坐标
                             )
                             
                             // 限制摇杆移动范围
