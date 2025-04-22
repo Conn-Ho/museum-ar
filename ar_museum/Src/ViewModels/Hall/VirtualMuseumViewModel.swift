@@ -269,9 +269,11 @@ class VirtualMuseumViewModel: NSObject, ObservableObject, SCNSceneRendererDelega
             // 创建一个更明显的标记
             let boxGeometry = SCNBox(width: 0.5, height: 0.5, length: 0.5, chamferRadius: 0.1)
             let material = SCNMaterial()
-            material.diffuse.contents = UIColor.yellow
-            material.emission.contents = UIColor.yellow
-            material.transparency = 0.8
+            material.diffuse.contents = UIColor(red: 1.0, green: 1.0, blue: 0.0, alpha: 0.3)  // 更透明的黄色
+            material.emission.contents = UIColor(red: 1.0, green: 1.0, blue: 0.0, alpha: 0.8)  // 增强发光效果
+            material.emission.intensity = 1.0  // 添加发光强度
+            material.transparency = 0.8  // 降低整体不透明度
+            material.lightingModel = .constant  // 使用恒定光照模型，增强发光效果
             boxGeometry.materials = [material]
             
             markerNode.geometry = boxGeometry
